@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SmartLoadBulk.API/SmartLoadBulk.API.csproj" />
+    <Project Path="src/SmartLoadBulk.Core/SmartLoadBulk.Core.csproj" />
+    <Project Path="src/SmartLoadBulk.Infrastructure/SmartLoadBulk.Infrastructure.csproj" />
+  </Folder>
+</Solution>

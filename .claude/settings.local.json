@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(New-Item *)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object @{N='Path';E={$_.FullName.Replace\\('D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\\\\',''\\)}} , @{N='Size\\(KB\\)';E={[math]::Round\\($_.Length/1KB,1\\)}})",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\" -Recurse -File | ForEach-Object { \"$\\($_.FullName.Replace\\('D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\\\\',''\\).PadRight\\(55\\)\\) $\\([math]::Round\\($_.Length/1KB,1\\)\\) KB\" })",
+      "PowerShell(Get-Item \"D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\\\\docs\\\\UI_UX_DESIGN.md\" | Select-Object @{N='File';E={$_.Name}}, @{N='Size\\(KB\\)';E={[math]::Round\\($_.Length/1KB,1\\)}})",
+      "PowerShell(dotnet --version)",
+      "PowerShell(sqlcmd *)",
+      "PowerShell(sqlcmd -S ASUS-MAKIYA -U sa -P 9931 -i \"$env:TEMP\\\\testdata001_v2.sql\" 2>&1 | Select-Object -First 30)",
+      "PowerShell(sqlcmd -S ASUS-MAKIYA -U sa -P 9931 -Q $q -b)",
+      "PowerShell(sqlcmd -S ASUS-MAKIYA -U sa -P 9931 -i \"$env:TEMP\\\\testdata001_v2.sql\" -f 65001 -b 2>&1 | Select-Object -Last 15)",
+      "PowerShell(sqlcmd -S ASUS-MAKIYA -U sa -P 9931 -i \"$env:TEMP\\\\testdata001_v2.sql\" -f 65001 -b 2>&1 | Select-Object -Last 5)",
+      "PowerShell(Start-Process \"http://localhost:5215/swagger\")",
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:5215/api/inventory\" -Method GET -ErrorAction SilentlyContinue)",
+      "PowerShell(Start-Process -FilePath \"dotnet\" -ArgumentList \"run\",\"--launch-profile\",\"http\" -WorkingDirectory \"D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\\\\src\\\\SmartLoadBulk.API\" -WindowStyle Normal -PassThru | Select-Object Id)",
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:5215/api/inventory\" -Method GET 2>&1)",
+      "PowerShell(Out-Null *)",
+      "PowerShell(Start-Process \"http://localhost:5173\")",
+      "PowerShell(netstat *)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\\\\src\" -Recurse | Where-Object { $_.Extension -eq \".cs\" } | Select-Object -First 20 | Format-Table Name, DirectoryName -AutoSize)",
+      "PowerShell($resp = Invoke-RestMethod -Uri \"http://localhost:5215/api/auth/login\" -Method POST -ContentType \"application/json\" -Body '{\"username\":\"admin\",\"password\":\"Admin@1234\"}'; $token = $resp.data.token; Write-Output \"Token OK: $\\($token.Substring\\(0,20\\)\\)...\")",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Start-Sleep -Seconds 3; try { $r = Invoke-WebRequest -Uri \"http://localhost:5173\" -TimeoutSec 5; Write-Output \"Frontend OK: $\\($r.StatusCode\\)\" } catch { Write-Output \"Frontend: $\\($_.Exception.Message\\)\" })",
+      "PowerShell(Invoke-RestMethod -Uri \"http://localhost:5173\" -TimeoutSec 5 -ErrorAction SilentlyContinue | Select-Object -First 3; Write-Output \"---\"; \\(Invoke-WebRequest -Uri \"http://localhost:5173\" -UseBasicParsing -TimeoutSec 5\\).StatusCode)",
+      "PowerShell(cd \"D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\\\\src\\\\SmartLoadBulk.API\"; Start-Process -FilePath \"dotnet\" -ArgumentList \"run\",\"--launch-profile\",\"http\" -WindowStyle Hidden; Start-Sleep -Seconds 7; \\(Invoke-RestMethod -Uri \"http://localhost:5215/health\"\\).status)",
+      "PowerShell(Stop-Process *)",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\\\\src\\\\slb-frontend\\\\src\\\\pages\" | ForEach-Object { $_.Name })",
+      "PowerShell(Get-ChildItem -Path \"D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\\\\src\\\\slb-frontend\\\\src\\\\components\" -Recurse -Depth 2 | Where-Object { $_.PSIsContainer -or $_.Extension -in '.tsx', '.ts', '.jsx', '.js' } | Select-Object FullName | ForEach-Object { $_.FullName -replace [regex]::Escape\\(\"D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\\\\src\\\\slb-frontend\\\\\"\\), \"\" })",
+      "PowerShell(ls -Recurse \"D:\\\\MAKIYA_PROJECT\\\\Project_SmartLoadBulk\\\\src\\\\slb-frontend\\\\src\\\\components\" | Where-Object { $_.Extension -in '.tsx', '.ts' } | Select-Object FullName)",
+      "PowerShell(Start-Sleep -Seconds 5; Invoke-RestMethod \"http://localhost:5215/health\" | ConvertTo-Json)",
+      "PowerShell($body = '{\"username\":\"admin\",\"password\":\"Admin@1234\"}'; $r = Invoke-RestMethod \"http://localhost:5215/api/auth/login\" -Method POST -Body $body -ContentType \"application/json\"; $token = $r.data.token; $headers = @{Authorization=\"Bearer $token\"}; $inv = Invoke-RestMethod \"http://localhost:5215/api/inventory\" -Headers $headers; \"Inventory items: $\\($inv.data.Count\\)\" ; $inv.data | Select-Object productCode, currentStock, stockStatus | Format-Table)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(winget install *)",
+      "PowerShell(git init *)",
+      "PowerShell(git add *)",
+      "PowerShell(git *)"
+    ]
+  }
+}

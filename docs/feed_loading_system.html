@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FeedFlow — ระบบรับอาหารสัตว์</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0f1e;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d47;
+    --accent: #00d4ff;
+    --accent2: #00ff9d;
+    --accent3: #ff6b35;
+    --warn: #ffd60a;
+    --text: #e2e8f0;
+    --text2: #7c8ca0;
+    --red: #ff4444;
+    --green: #00ff9d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans Thai', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    z-index: 100;
+  }
+
+  .logo {
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-title {
+    font-size: 20px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+  .logo-sub { font-size: 10px; color: var(--text2); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+
+  .nav { flex: 1; padding: 16px 0; }
+  .nav-section { font-size: 9px; color: var(--text2); letter-spacing: 2px; padding: 12px 20px 6px; text-transform: uppercase; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px; cursor: pointer; font-size: 13px; color: var(--text2);
+    border-left: 3px solid transparent; transition: all 0.2s;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(0,212,255,0.06); }
+  .nav-icon { width: 18px; text-align: center; font-size: 16px; }
+
+  /* MAIN */
+  .main { margin-left: 220px; padding: 0; }
+
+  /* TOPBAR */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar-title { font-size: 15px; font-weight: 600; }
+  .topbar-title span { color: var(--text2); font-weight: 400; font-size: 13px; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .badge { 
+    background: var(--accent3); color: white; 
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  }
+  .now { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text2); }
+  .dot-live { width: 8px; height: 8px; border-radius: 50%; background: var(--green); 
+    box-shadow: 0 0 8px var(--green); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
+
+  /* CONTENT */
+  .content { padding: 24px 28px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--surface); 
+    padding: 4px; border-radius: 10px; width: fit-content; border: 1px solid var(--border); }
+  .tab { padding: 8px 18px; border-radius: 7px; cursor: pointer; font-size: 13px; 
+    color: var(--text2); transition: all 0.2s; font-weight: 500; }
+  .tab.active { background: var(--accent); color: #000; font-weight: 600; }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* PAGE */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* STATS ROW */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .stat-card.c1::before { background: var(--accent); }
+  .stat-card.c2::before { background: var(--accent2); }
+  .stat-card.c3::before { background: var(--warn); }
+  .stat-card.c4::before { background: var(--accent3); }
+  .stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+  .stat-value.c1 { color: var(--accent); }
+  .stat-value.c2 { color: var(--accent2); }
+  .stat-value.c3 { color: var(--warn); }
+  .stat-value.c4 { color: var(--accent3); }
+  .stat-sub { font-size: 11px; color: var(--text2); margin-top: 6px; }
+  .stat-change { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; margin-left: 4px; }
+  .up { background: rgba(0,255,157,0.15); color: var(--green); }
+  .down { background: rgba(255,68,68,0.15); color: var(--red); }
+
+  /* GRID LAYOUT */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid3 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+  /* CARD */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  }
+  .card-title { font-size: 13px; font-weight: 600; }
+  .card-action { font-size: 11px; color: var(--accent); cursor: pointer; }
+  .card-body { padding: 16px 20px; }
+
+  /* QUEUE BOARD */
+  .queue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  
+  .truck-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; cursor: grab;
+    transition: all 0.2s; user-select: none; position: relative;
+  }
+  .truck-card:hover { border-color: var(--accent); transform: translateY(-2px); 
+    box-shadow: 0 8px 24px rgba(0,212,255,0.15); }
+  .truck-card.dragging { opacity: 0.5; transform: scale(0.95); cursor: grabbing; }
+  .truck-card.drag-over { border-color: var(--accent2); background: rgba(0,255,157,0.05); }
+  
+  .truck-queue-num {
+    position: absolute; top: -8px; left: -8px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--accent); color: #000; font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .truck-plate {
+    font-family: 'IBM Plex Mono', monospace; font-size: 16px; font-weight: 600;
+    color: var(--accent); margin-bottom: 6px; margin-top: 4px;
+  }
+  .truck-info { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+  .truck-so { font-size: 10px; color: var(--text2); }
+  .truck-so span { color: var(--text); font-weight: 500; }
+  .status-chip {
+    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;
+    margin-top: 8px;
+  }
+  .s-waiting { background: rgba(255,214,10,0.15); color: var(--warn); }
+  .s-loading { background: rgba(0,212,255,0.15); color: var(--accent); }
+  .s-done { background: rgba(0,255,157,0.15); color: var(--green); }
+  .s-incoming { background: rgba(255,107,53,0.15); color: var(--accent3); }
+
+  /* PROGRESS BAR */
+  .progress-wrap { margin-top: 8px; }
+  .progress-bar-bg { background: var(--border); border-radius: 4px; height: 4px; overflow: hidden; }
+  .progress-bar { height: 100%; border-radius: 4px; transition: width 0.5s; }
+  .pb-blue { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .pb-green { background: var(--accent2); }
+  .pb-warn { background: var(--warn); }
+  .progress-text { font-size: 10px; color: var(--text2); margin-top: 4px; 
+    display: flex; justify-content: space-between; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; 
+    padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  td { padding: 11px 12px; font-size: 12px; border-bottom: 1px solid rgba(30,45,71,0.5); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* LOADING BAY */
+  .bay-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .bay-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; text-align: center;
+  }
+  .bay-num { font-size: 10px; color: var(--text2); margin-bottom: 6px; letter-spacing: 1px; }
+  .bay-status { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+  .bay-active { border-color: var(--accent); }
+  .bay-done { border-color: var(--accent2); }
+  .bay-idle { border-color: var(--border); }
+
+  /* FIFO FLOW */
+  .fifo-flow { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 4px 0; }
+  .fifo-node {
+    flex-shrink: 0;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; font-size: 11px; text-align: center; min-width: 110px;
+    position: relative;
+  }
+  .fifo-node.active { border-color: var(--accent); }
+  .fifo-arrow { color: var(--text2); font-size: 18px; padding: 0 4px; flex-shrink: 0; }
+  .fifo-tag { font-size: 9px; color: var(--text2); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .fifo-val { font-weight: 600; font-size: 12px; font-family: 'IBM Plex Mono', monospace; }
+
+  /* CHART CONTAINERS */
+  .chart-box { position: relative; height: 200px; }
+  .chart-box-tall { position: relative; height: 240px; }
+
+  /* DASHBOARD MANAGER SECTION */
+  .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; text-align: center;
+  }
+  .kpi-icon { font-size: 28px; margin-bottom: 8px; }
+  .kpi-val { font-size: 22px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+  .kpi-lbl { font-size: 11px; color: var(--text2); margin-top: 4px; }
+
+  /* ALERTS */
+  .alert-list { display: flex; flex-direction: column; gap: 8px; }
+  .alert-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: var(--surface2); border-radius: 8px; padding: 10px 12px;
+    border-left: 3px solid;
+  }
+  .alert-warn { border-color: var(--warn); }
+  .alert-info { border-color: var(--accent); }
+  .alert-ok { border-color: var(--green); }
+  .alert-icon { font-size: 14px; margin-top: 1px; }
+  .alert-text { font-size: 12px; }
+  .alert-time { font-size: 10px; color: var(--text2); margin-top: 2px; }
+
+  /* BTN */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.2s; font-family: inherit;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #00b8d9; }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200;
+    display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; width: 460px; max-width: 95vw;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; display: block; 
+    text-transform: uppercase; letter-spacing: 1px; }
+  .form-input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 13px;
+    font-family: inherit; outline: none; transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* CHIP */
+  .chip { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+  .chip-blue { background: rgba(0,212,255,0.15); color: var(--accent); }
+  .chip-green { background: rgba(0,255,157,0.15); color: var(--green); }
+
+  /* SECTION HEADER */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .section-title { font-size: 14px; font-weight: 600; }
+
+  /* DRAG HINT */
+  .drag-hint { font-size: 11px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-title">🌾 FeedFlow</div>
+    <div class="logo-sub">Feed Loading System</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Operations</div>
+    <div class="nav-item active" onclick="switchTab('queue')">
+      <span class="nav-icon">🚚</span> คิวรถเบาท์
+    </div>
+    <div class="nav-item" onclick="switchTab('jobs')">
+      <span class="nav-icon">📋</span> จัดการ Jobs
+    </div>
+    <div class="nav-item" onclick="switchTab('loading')">
+      <span class="nav-icon">⚡</span> โหลดอาหาร (FIFO)
+    </div>
+    <div class="nav-section">Analytics</div>
+    <div class="nav-item" onclick="switchTab('ops-dash')">
+      <span class="nav-icon">📊</span> Ops Dashboard
+    </div>
+    <div class="nav-item" onclick="switchTab('mgmt-dash')">
+      <span class="nav-icon">📈</span> Mgmt Dashboard
+    </div>
+    <div class="nav-section">Settings</div>
+    <div class="nav-item">
+      <span class="nav-icon">⚙️</span> ตั้งค่าระบบ
+    </div>
+  </nav>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title" id="page-title">🚚 คิวรถเบาท์ <span>/ ลากเพื่อจัดลำดับ</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="dot-live"></div>
+      <span style="font-size:11px;color:var(--text2)">LIVE</span>
+      <div class="now" id="clock">09:42:31</div>
+      <button class="btn btn-primary" onclick="openModal()">+ Register รถ</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ========== PAGE: QUEUE ========== -->
+    <div id="page-queue" class="page active">
+      <!-- Stats -->
+      <div class="stats">
+        <div class="stat-card c1">
+          <div class="stat-label">รถที่รอในโรงงาน</div>
+          <div class="stat-value c1">8</div>
+          <div class="stat-sub">อยู่ในคิว <span class="stat-change up">+2 ชั่วโมงนี้</span></div>
+        </div>
+        <div class="stat-card c2">
+          <div class="stat-label">กำลังโหลดอยู่</div>
+          <div class="stat-value c2">3</div>
+          <div class="stat-sub">ช่องโหลด 3/5 ช่อง</div>
+        </div>
+        <div class="stat-card c3">
+          <div class="stat-label">รอดำเนินการ Jobs</div>
+          <div class="stat-value c3">12</div>
+          <div class="stat-sub">Sale Orders วันนี้</div>
+        </div>
+        <div class="stat-card c4">
+          <div class="stat-label">เสร็จวันนี้</div>
+          <div class="stat-value c4">17</div>
+          <div class="stat-sub">รถออกไปแล้ว <span class="stat-change up">↑15%</span></div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <div class="section-title">คิวรถที่ Register เข้าโรงงาน</div>
+        <div class="drag-hint">✋ ลากเพื่อจัดลำดับคิว</div>
+      </div>
+
+      <div id="queue-container" class="queue-grid" style="margin-bottom:24px;">
+        <!-- Generated by JS -->
+      </div>
+
+      <div class="grid3">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🏭 สถานะช่องโหลด (Loading Bay)</div>
+          </div>
+          <div class="card-body">
+            <div class="bay-grid">
+              <div class="bay-card bay-active">
+                <div class="bay-num">BAY 01</div>
+                <div class="bay-status" style="color:var(--accent)">⚡ กำลังโหลด</div>
+                <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text2)">กข-1234</div>
+                <div class="progress-wrap">
+                  <div class="progress-bar-bg"><div class="progress-bar pb-blue" style="width:72%"></div></div>
+                  <div class="progress-text"><span>72%</span><span>SO-2401</span></div>
+                </div>
+              </div>
+              <div class="bay-card bay-active">
+                <div class="bay-num">BAY 02</div>
+                <div class="bay-status" style="color:var(--accent)">⚡ กำลังโหลด</div>
+                <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text2)">งง-5678</div>
+                <div class="progress-wrap">
+                  <div class="progress-bar-bg"><div class="progress-bar pb-blue" style="width:45%"></div></div>
+                  <div class="progress-text"><span>45%</span><span>SO-2402</span></div>
+                </div>
+              </div>
+              <div class="bay-card bay-active">
+                <div class="bay-num">BAY 03</div>
+                <div class="bay-status" style="color:var(--accent)">⚡ กำลังโหลด</div>
+                <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text2)">ขข-9012</div>
+                <div class="progress-wrap">
+                  <div class="progress-bar-bg"><div class="progress-bar pb-blue" style="width:90%"></div></div>
+                  <div class="progress-text"><span>90%</span><span>SO-2403</span></div>
+                </div>
+              </div>
+              <div class="bay-card bay-idle">
+                <div class="bay-num">BAY 04</div>
+                <div class="bay-status" style="color:var(--text2)">— ว่าง</div>
+                <div style="font-size:11px;color:var(--text2)">พร้อมรับรถถัดไป</div>
+              </div>
+              <div class="bay-card bay-done">
+                <div class="bay-num">BAY 05</div>
+                <div class="bay-status" style="color:var(--green)">✅ เสร็จแล้ว</div>
+                <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text2)">คค-3456</div>
+              </div>
+              <div class="bay-card bay-idle">
+                <div class="bay-num">BAY 06</div>
+                <div class="bay-status" style="color:var(--text2)">🔧 ซ่อมบำรุง</div>
+                <div style="font-size:11px;color:var(--warn)">ปิดชั่วคราว</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔔 แจ้งเตือน</div>
+          </div>
+          <div class="card-body">
+            <div class="alert-list">
+              <div class="alert-item alert-warn">
+                <div class="alert-icon">⚠️</div>
+                <div>
+                  <div class="alert-text">รถ ขข-9012 โหลดเกินเวลา</div>
+                  <div class="alert-time">09:38 — เกิน 15 นาที</div>
+                </div>
+              </div>
+              <div class="alert-item alert-info">
+                <div class="alert-icon">🚚</div>
+                <div>
+                  <div class="alert-text">รถ วว-1122 เพิ่งเข้าโรงงาน</div>
+                  <div class="alert-time">09:40 — SO-2408</div>
+                </div>
+              </div>
+              <div class="alert-item alert-ok">
+                <div class="alert-icon">✅</div>
+                <div>
+                  <div class="alert-text">SO-2399 โหลดครบ ออกจากโรงงาน</div>
+                  <div class="alert-time">09:32 — เสร็จตามกำหนด</div>
+                </div>
+              </div>
+              <div class="alert-item alert-warn">
+                <div class="alert-icon">⚠️</div>
+                <div>
+                  <div class="alert-text">สต็อก Feed A-001 เหลือน้อย</div>
+                  <div class="alert-time">09:25 — เหลือ 2.3 ตัน</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PAGE: JOBS ========== -->
+    <div id="page-jobs" class="page">
+      <div class="stats">
+        <div class="stat-card c1">
+          <div class="stat-label">Jobs รออนุมัติ</div>
+          <div class="stat-value c1">5</div>
+        </div>
+        <div class="stat-card c2">
+          <div class="stat-label">Jobs กำลังดำเนินการ</div>
+          <div class="stat-value c2">3</div>
+        </div>
+        <div class="stat-card c3">
+          <div class="stat-label">Jobs วันนี้ทั้งหมด</div>
+          <div class="stat-value c3">24</div>
+        </div>
+        <div class="stat-card c4">
+          <div class="stat-label">เสร็จสมบูรณ์</div>
+          <div class="stat-value c4">16</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 รายการ Jobs (Sale Order)</div>
+          <button class="btn btn-primary" style="font-size:11px;padding:6px 12px" onclick="openJobModal()">+ สร้าง Job</button>
+        </div>
+        <div class="card-body" style="padding:0">
+          <table>
+            <thead>
+              <tr>
+                <th>Job No.</th>
+                <th>Sale Order</th>
+                <th>ทะเบียนรถ</th>
+                <th>รหัสอาหาร</th>
+                <th>จำนวน (ตัน)</th>
+                <th>FIFO Batch</th>
+                <th>สถานะ</th>
+                <th>เวลาสร้าง</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">JOB-0041</td>
+                <td class="mono" style="color:var(--accent)">SO-2401</td>
+                <td class="mono" style="color:var(--accent2)">กข-1234</td>
+                <td class="mono">FEED-A001</td>
+                <td>18.5</td>
+                <td><span class="chip chip-blue">BATCH-001</span></td>
+                <td><span class="status-chip s-loading">⚡ กำลังโหลด</span></td>
+                <td class="mono" style="color:var(--text2)">08:15</td>
+              </tr>
+              <tr>
+                <td class="mono">JOB-0042</td>
+                <td class="mono" style="color:var(--accent)">SO-2402</td>
+                <td class="mono" style="color:var(--accent2)">งง-5678</td>
+                <td class="mono">FEED-B002</td>
+                <td>22.0</td>
+                <td><span class="chip chip-blue">BATCH-002</span></td>
+                <td><span class="status-chip s-loading">⚡ กำลังโหลด</span></td>
+                <td class="mono" style="color:var(--text2)">08:30</td>
+              </tr>
+              <tr>
+                <td class="mono">JOB-0043</td>
+                <td class="mono" style="color:var(--accent)">SO-2403</td>
+                <td class="mono" style="color:var(--accent2)">ขข-9012</td>
+                <td class="mono">FEED-A001</td>
+                <td>15.0</td>
+                <td><span class="chip chip-green">BATCH-001</span></td>
+                <td><span class="status-chip s-loading">⚡ กำลังโหลด</span></td>
+                <td class="mono" style="color:var(--text2)">08:45</td>
+              </tr>
+              <tr>
+                <td class="mono">JOB-0044</td>
+                <td class="mono" style="color:var(--accent)">SO-2404</td>
+                <td class="mono" style="color:var(--accent2)">คค-1122</td>
+                <td class="mono">FEED-C003</td>
+                <td>20.0</td>
+                <td><span class="chip chip-blue">BATCH-003</span></td>
+                <td><span class="status-chip s-waiting">⏳ รอคิว</span></td>
+                <td class="mono" style="color:var(--text2)">09:00</td>
+              </tr>
+              <tr>
+                <td class="mono">JOB-0045</td>
+                <td class="mono" style="color:var(--accent)">SO-2405</td>
+                <td class="mono" style="color:var(--accent2)">ชช-3344</td>
+                <td class="mono">FEED-B002</td>
+                <td>12.5</td>
+                <td><span class="chip chip-blue">BATCH-002</span></td>
+                <td><span class="status-chip s-waiting">⏳ รอคิว</span></td>
+                <td class="mono" style="color:var(--text2)">09:10</td>
+              </tr>
+              <tr>
+                <td class="mono">JOB-0046</td>
+                <td class="mono" style="color:var(--accent)">SO-2406</td>
+                <td class="mono" style="color:var(--accent2)">ซซ-5566</td>
+                <td class="mono">FEED-D004</td>
+                <td>25.0</td>
+                <td><span class="chip chip-blue">BATCH-004</span></td>
+                <td><span class="status-chip s-incoming">🚛 กำลังเข้า</span></td>
+                <td class="mono" style="color:var(--text2)">09:20</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PAGE: LOADING (FIFO) ========== -->
+    <div id="page-loading" class="page">
+      <div class="section-header">
+        <div class="section-title">⚡ กระบวนการโหลดอาหาร — FIFO (First In, First Out)</div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-title">🔄 FIFO Flow — ลำดับการนำอาหารออก</div></div>
+        <div class="card-body">
+          <div class="fifo-flow">
+            <div class="fifo-node active">
+              <div class="fifo-tag">📦 Batch เก่าสุด</div>
+              <div class="fifo-val">BATCH-001</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:4px">ผลิต: 08:00</div>
+            </div>
+            <div class="fifo-arrow">→</div>
+            <div class="fifo-node active">
+              <div class="fifo-tag">🔍 ตรวจสอบ SO</div>
+              <div class="fifo-val">SO-2401</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:4px">FEED-A001</div>
+            </div>
+            <div class="fifo-arrow">→</div>
+            <div class="fifo-node active">
+              <div class="fifo-tag">🚚 จับคู่รถ</div>
+              <div class="fifo-val">กข-1234</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:4px">คิวที่ 1</div>
+            </div>
+            <div class="fifo-arrow">→</div>
+            <div class="fifo-node active">
+              <div class="fifo-tag">🏭 ช่องโหลด</div>
+              <div class="fifo-val">BAY 01</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:4px">กำลังโหลด</div>
+            </div>
+            <div class="fifo-arrow">→</div>
+            <div class="fifo-node">
+              <div class="fifo-tag">⚖️ ชั่งน้ำหนัก</div>
+              <div class="fifo-val">18.5 ตัน</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:4px">รออยู่</div>
+            </div>
+            <div class="fifo-arrow">→</div>
+            <div class="fifo-node">
+              <div class="fifo-tag">✅ ออกโรงงาน</div>
+              <div class="fifo-val">เสร็จสิ้น</div>
+              <div style="font-size:10px;color:var(--text2);margin-top:4px">อัพเดต SO</div>
+            </div>
+          </div>
+          <div style="margin-top:14px;padding:12px;background:rgba(0,212,255,0.05);border-radius:8px;border-left:3px solid var(--accent)">
+            <div style="font-size:11px;color:var(--text2);">🔵 หลัก FIFO: ระบบจะนำ <strong style="color:var(--accent)">อาหารที่ผลิตก่อน (Batch เก่าสุด)</strong> ออกก่อนเสมอ 
+            โดยจับคู่กับ Sale Order ที่รอรับอยู่ และดึงรถที่อยู่ในคิวตาม <strong style="color:var(--accent2)">ลำดับการเข้าโรงงาน</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">📦 Stock Batches (FIFO Order)</div></div>
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead>
+                <tr>
+                  <th>FIFO</th>
+                  <th>Batch ID</th>
+                  <th>รหัสอาหาร</th>
+                  <th>จำนวน (ตัน)</th>
+                  <th>ผลิตเมื่อ</th>
+                  <th>สถานะ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span style="color:var(--accent);font-weight:700;font-family:'IBM Plex Mono',monospace">#1</span></td>
+                  <td class="mono">BATCH-001</td>
+                  <td class="mono">FEED-A001</td>
+                  <td>45.0</td>
+                  <td class="mono" style="color:var(--text2)">06:00</td>
+                  <td><span class="status-chip s-loading">กำลังใช้</span></td>
+                </tr>
+                <tr>
+                  <td><span style="color:var(--accent);font-weight:700;font-family:'IBM Plex Mono',monospace">#2</span></td>
+                  <td class="mono">BATCH-002</td>
+                  <td class="mono">FEED-B002</td>
+                  <td>60.0</td>
+                  <td class="mono" style="color:var(--text2)">06:30</td>
+                  <td><span class="status-chip s-loading">กำลังใช้</span></td>
+                </tr>
+                <tr>
+                  <td><span style="color:var(--text2);font-weight:700;font-family:'IBM Plex Mono',monospace">#3</span></td>
+                  <td class="mono">BATCH-003</td>
+                  <td class="mono">FEED-C003</td>
+                  <td>80.0</td>
+                  <td class="mono" style="color:var(--text2)">07:00</td>
+                  <td><span class="status-chip s-waiting">รอใช้งาน</span></td>
+                </tr>
+                <tr>
+                  <td><span style="color:var(--text2);font-weight:700;font-family:'IBM Plex Mono',monospace">#4</span></td>
+                  <td class="mono">BATCH-004</td>
+                  <td class="mono">FEED-D004</td>
+                  <td>55.0</td>
+                  <td class="mono" style="color:var(--text2)">07:30</td>
+                  <td><span class="status-chip s-waiting">รอใช้งาน</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🎯 กฎ FIFO ที่ระบบบังคับใช้</div></div>
+          <div class="card-body">
+            <div class="alert-list">
+              <div class="alert-item alert-ok">
+                <div class="alert-icon">✅</div>
+                <div>
+                  <div class="alert-text" style="font-weight:600">ผลิตก่อน → ออกก่อน</div>
+                  <div class="alert-time">Batch เรียงตามเวลาผลิต ไม่สามารถข้ามได้</div>
+                </div>
+              </div>
+              <div class="alert-item alert-ok">
+                <div class="alert-icon">✅</div>
+                <div>
+                  <div class="alert-text" style="font-weight:600">Lock Batch ขณะโหลด</div>
+                  <div class="alert-time">ระบบ lock ไม่ให้แก้ไข Batch ระหว่างโหลด</div>
+                </div>
+              </div>
+              <div class="alert-item alert-ok">
+                <div class="alert-icon">✅</div>
+                <div>
+                  <div class="alert-text" style="font-weight:600">ตรวจสอบจำนวนก่อนโหลด</div>
+                  <div class="alert-time">ระบบเช็ค stock ก่อนอนุมัติ Job ทุกครั้ง</div>
+                </div>
+              </div>
+              <div class="alert-item alert-warn">
+                <div class="alert-icon">⚠️</div>
+                <div>
+                  <div class="alert-text" style="font-weight:600">แจ้งเตือนหากข้าม Batch</div>
+                  <div class="alert-time">Supervisor ต้องอนุมัติหากจำเป็นต้องข้าม</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PAGE: OPS DASHBOARD ========== -->
+    <div id="page-ops-dash" class="page">
+      <div class="section-header">
+        <div class="section-title">📊 Operations Dashboard — สำหรับ Supervisor & หัวหน้างาน</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card c1">
+          <div class="stat-label">รถที่โหลดวันนี้</div>
+          <div class="stat-value c1">20</div>
+          <div class="stat-sub">เป้า 28 คัน <span class="stat-change up">71%</span></div>
+        </div>
+        <div class="stat-card c2">
+          <div class="stat-label">ปริมาณโหลดวันนี้</div>
+          <div class="stat-value c2">340</div>
+          <div class="stat-sub">ตัน / เป้า 500 ตัน</div>
+        </div>
+        <div class="stat-card c3">
+          <div class="stat-label">เวลาโหลดเฉลี่ย</div>
+          <div class="stat-value c3">42</div>
+          <div class="stat-sub">นาที/คัน <span class="stat-change down">↑5 นาที</span></div>
+        </div>
+        <div class="stat-card c4">
+          <div class="stat-label">รอนานสุดในคิว</div>
+          <div class="stat-value c4">78</div>
+          <div class="stat-sub">นาที — กข-1234</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">📈 จำนวนรถโหลดรายชั่วโมง (วันนี้)</div></div>
+          <div class="card-body"><div class="chart-box"><canvas id="chartHourly"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🏭 ประสิทธิภาพช่องโหลดรายช่อง</div></div>
+          <div class="card-body"><div class="chart-box"><canvas id="chartBay"></canvas></div></div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">⏱ เวลารอในคิวเฉลี่ย (รายวัน 7 วัน)</div></div>
+          <div class="card-body"><div class="chart-box"><canvas id="chartWait"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📦 สัดส่วนอาหารที่โหลดตามประเภท</div></div>
+          <div class="card-body"><div class="chart-box"><canvas id="chartFeedType"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== PAGE: MGMT DASHBOARD ========== -->
+    <div id="page-mgmt-dash" class="page">
+      <div class="section-header">
+        <div class="section-title">📈 Management Dashboard — สำหรับผู้บริหาร</div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-icon">🚚</div>
+          <div class="kpi-val" style="color:var(--accent)">428</div>
+          <div class="kpi-lbl">รถที่ให้บริการเดือนนี้</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">⚖️</div>
+          <div class="kpi-val" style="color:var(--accent2)">8,240</div>
+          <div class="kpi-lbl">ตันอาหารที่ส่งออกเดือนนี้</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">⏱️</div>
+          <div class="kpi-val" style="color:var(--warn)">38 <span style="font-size:14px">นาที</span></div>
+          <div class="kpi-lbl">เวลาโหลดเฉลี่ย (เดือน)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">🎯</div>
+          <div class="kpi-val" style="color:var(--accent2)">94.2%</div>
+          <div class="kpi-lbl">อัตราส่งตรงเวลา (On-time)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">📋</div>
+          <div class="kpi-val" style="color:var(--accent)">1,245</div>
+          <div class="kpi-lbl">Sale Orders เดือนนี้</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">🏭</div>
+          <div class="kpi-val" style="color:var(--accent3)">87%</div>
+          <div class="kpi-lbl">Bay Utilization Rate</div>
+        </div>
+      </div>
+
+      <div class="grid2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 ปริมาณโหลด (ตัน) รายเดือน</div></div>
+          <div class="card-body"><div class="chart-box-tall"><canvas id="chartMonthly"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📉 เวลาโหลดเฉลี่ย vs เป้าหมาย</div></div>
+          <div class="card-body"><div class="chart-box-tall"><canvas id="chartTarget"></canvas></div></div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔝 Top 10 Sale Orders ปริมาณสูงสุด</div></div>
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>#</th><th>SO No.</th><th>ลูกค้า</th><th>ปริมาณ (ตัน)</th><th>สถานะ</th></tr></thead>
+              <tbody>
+                <tr><td class="mono" style="color:var(--accent)">1</td><td class="mono">SO-2401</td><td>ฟาร์มสุขใจ จ.สุพรรณ</td><td>120.5</td><td><span class="status-chip s-done">เสร็จ</span></td></tr>
+                <tr><td class="mono" style="color:var(--accent)">2</td><td class="mono">SO-2389</td><td>ไก่ทองฟาร์ม จ.ราชบุรี</td><td>98.0</td><td><span class="status-chip s-done">เสร็จ</span></td></tr>
+                <tr><td class="mono" style="color:var(--accent)">3</td><td class="mono">SO-2415</td><td>หมูสมบูรณ์ จ.นครปฐม</td><td>85.5</td><td><span class="status-chip s-loading">โหลดอยู่</span></td></tr>
+                <tr><td class="mono" style="color:var(--accent)">4</td><td class="mono">SO-2398</td><td>กุ้งดีฟาร์ม จ.สมุทรสาคร</td><td>76.0</td><td><span class="status-chip s-done">เสร็จ</span></td></tr>
+                <tr><td class="mono" style="color:var(--accent)">5</td><td class="mono">SO-2422</td><td>ปลาทองฟาร์ม จ.อยุธยา</td><td>65.0</td><td><span class="status-chip s-waiting">รอคิว</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">💡 แนะนำ Dashboard ที่ผู้บริหารควรดู</div></div>
+          <div class="card-body">
+            <div class="alert-list">
+              <div class="alert-item alert-info">
+                <div class="alert-icon">📊</div>
+                <div><div class="alert-text" style="font-weight:600">ยอดโหลดรายเดือน vs เป้า</div>
+                <div class="alert-time">ดูแนวโน้มและวางแผน capacity ล่วงหน้า</div></div>
+              </div>
+              <div class="alert-item alert-info">
+                <div class="alert-icon">⏱️</div>
+                <div><div class="alert-text" style="font-weight:600">เวลาโหลดเฉลี่ย & Bottleneck</div>
+                <div class="alert-time">ระบุช่องที่ช้า ปรับปรุงกระบวนการ</div></div>
+              </div>
+              <div class="alert-item alert-info">
+                <div class="alert-icon">🏭</div>
+                <div><div class="alert-text" style="font-weight:600">Bay Utilization Rate</div>
+                <div class="alert-time">วัดการใช้งานช่องโหลด ตัดสินใจขยาย bay</div></div>
+              </div>
+              <div class="alert-item alert-info">
+                <div class="alert-icon">🎯</div>
+                <div><div class="alert-text" style="font-weight:600">On-time Delivery Rate</div>
+                <div class="alert-time">KPI สำคัญสำหรับความพึงพอใจลูกค้า</div></div>
+              </div>
+              <div class="alert-item alert-info">
+                <div class="alert-icon">🏆</div>
+                <div><div class="alert-text" style="font-weight:600">Top SO & ลูกค้ารายใหญ่</div>
+                <div class="alert-time">บริหารความสัมพันธ์ลูกค้า VIP</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Register Truck -->
+<div class="modal-overlay" id="modal-register">
+  <div class="modal">
+    <div class="modal-title">🚚 Register รถเบาท์เข้าโรงงาน</div>
+    <div class="form-group">
+      <label class="form-label">ทะเบียนรถ</label>
+      <input class="form-input" placeholder="เช่น กข-1234" id="inp-plate">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Sale Order No.</label>
+        <input class="form-input" placeholder="SO-XXXX" id="inp-so">
+      </div>
+      <div class="form-group">
+        <label class="form-label">รหัสอาหาร</label>
+        <input class="form-input" placeholder="FEED-XXXX" id="inp-feed">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">จำนวน (ตัน)</label>
+        <input class="form-input" type="number" placeholder="0.0" id="inp-qty">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ชื่อคนขับ</label>
+        <input class="form-input" placeholder="ชื่อ-นามสกุล" id="inp-driver">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="registerTruck()">✅ Register & เพิ่มคิว</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// CLOCK
+function updateClock(){
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString('th-TH');
+}
+setInterval(updateClock, 1000); updateClock();
+
+// TABS
+const titles = {
+  'queue': '🚚 คิวรถเบาท์ / ลากเพื่อจัดลำดับ',
+  'jobs': '📋 จัดการ Jobs (Sale Orders)',
+  'loading': '⚡ กระบวนการโหลดอาหาร FIFO',
+  'ops-dash': '📊 Operations Dashboard',
+  'mgmt-dash': '📈 Management Dashboard'
+};
+
+function switchTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  document.getElementById('page-title').textContent = titles[tab];
+  event.currentTarget.classList.add('active');
+  if(tab === 'ops-dash' && !chartsInitialized.ops) { initOpsCharts(); chartsInitialized.ops = true; }
+  if(tab === 'mgmt-dash' && !chartsInitialized.mgmt) { initMgmtCharts(); chartsInitialized.mgmt = true; }
+}
+const chartsInitialized = { ops: false, mgmt: false };
+
+// QUEUE DATA
+let trucks = [
+  { plate: 'กข-1234', so: 'SO-2401', feed: 'FEED-A001', qty: '18.5', driver: 'สมชาย ใจดี', status: 'loading', since: '08:15' },
+  { plate: 'งง-5678', so: 'SO-2402', feed: 'FEED-B002', qty: '22.0', driver: 'ประสิทธิ์ มั่นคง', status: 'loading', since: '08:30' },
+  { plate: 'ขข-9012', so: 'SO-2403', feed: 'FEED-A001', qty: '15.0', driver: 'วิชัย สดใส', status: 'loading', since: '08:45' },
+  { plate: 'คค-1122', so: 'SO-2404', feed: 'FEED-C003', qty: '20.0', driver: 'สุดา ร่มเย็น', status: 'waiting', since: '09:00' },
+  { plate: 'ชช-3344', so: 'SO-2405', feed: 'FEED-B002', qty: '12.5', driver: 'บุญมา แสงทอง', status: 'waiting', since: '09:10' },
+  { plate: 'ซซ-5566', so: 'SO-2406', feed: 'FEED-D004', qty: '25.0', driver: 'กมล ดีงาม', status: 'waiting', since: '09:20' },
+  { plate: 'ฌฌ-7788', so: 'SO-2407', feed: 'FEED-A001', qty: '18.0', driver: 'นพ ใสสะอาด', status: 'incoming', since: '09:35' },
+  { plate: 'วว-1122', so: 'SO-2408', feed: 'FEED-C003', qty: '30.0', driver: 'เอก มีความสุข', status: 'incoming', since: '09:40' },
+];
+
+function renderQueue() {
+  const container = document.getElementById('queue-container');
+  container.innerHTML = trucks.map((t, i) => `
+    <div class="truck-card" draggable="true" data-idx="${i}"
+      ondragstart="dragStart(event,${i})" ondragover="dragOver(event,${i})" 
+      ondrop="drop(event,${i})" ondragleave="dragLeave(event)">
+      <div class="truck-queue-num">${i+1}</div>
+      <div class="truck-plate">🚚 ${t.plate}</div>
+      <div class="truck-info">👤 ${t.driver}</div>
+      <div class="truck-so">SO: <span>${t.so}</span> &nbsp;|&nbsp; 🌾 ${t.feed}</div>
+      <div class="truck-so">⚖️ <span>${t.qty} ตัน</span> &nbsp;|&nbsp; 🕐 ${t.since}</div>
+      <span class="status-chip ${t.status==='loading'?'s-loading':t.status==='waiting'?'s-waiting':t.status==='done'?'s-done':'s-incoming'}">
+        ${t.status==='loading'?'⚡ กำลังโหลด':t.status==='waiting'?'⏳ รอคิว':t.status==='done'?'✅ เสร็จแล้ว':'🚛 กำลังเข้า'}
+      </span>
+    </div>
+  `).join('');
+}
+renderQueue();
+
+// DRAG AND DROP
+let draggingIdx = null;
+function dragStart(e, idx) { draggingIdx = idx; e.currentTarget.classList.add('dragging'); }
+function dragOver(e, idx) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
+function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function drop(e, idx) {
+  e.preventDefault();
+  if(draggingIdx === null || draggingIdx === idx) { renderQueue(); return; }
+  const moved = trucks.splice(draggingIdx, 1)[0];
+  trucks.splice(idx, 0, moved);
+  draggingIdx = null;
+  renderQueue();
+}
+
+// MODAL
+function openModal() { document.getElementById('modal-register').classList.add('open'); }
+function closeModal() { document.getElementById('modal-register').classList.remove('open'); }
+function openJobModal() { openModal(); }
+
+function registerTruck() {
+  const plate = document.getElementById('inp-plate').value || 'XX-9999';
+  const so = document.getElementById('inp-so').value || 'SO-NEW';
+  const feed = document.getElementById('inp-feed').value || 'FEED-X';
+  const qty = document.getElementById('inp-qty').value || '10.0';
+  const driver = document.getElementById('inp-driver').value || 'คนขับใหม่';
+  const now = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  trucks.push({ plate, so, feed, qty, driver, status:'incoming', since: now });
+  renderQueue();
+  closeModal();
+}
+
+document.getElementById('modal-register').addEventListener('click', function(e){
+  if(e.target === this) closeModal();
+});
+
+// CHARTS CONFIG
+const chartDefaults = {
+  plugins: { legend: { labels: { color: '#7c8ca0', font: { size: 11 } } } },
+  scales: {
+    x: { ticks: { color: '#7c8ca0', font:{size:10} }, grid: { color: 'rgba(30,45,71,0.8)' } },
+    y: { ticks: { color: '#7c8ca0', font:{size:10} }, grid: { color: 'rgba(30,45,71,0.8)' } }
+  }
+};
+
+function initOpsCharts() {
+  // Hourly
+  new Chart(document.getElementById('chartHourly'), {
+    type: 'bar',
+    data: {
+      labels: ['06','07','08','09','10','11','12','13','14','15','16','17'],
+      datasets: [{
+        label: 'รถที่โหลดเสร็จ',
+        data: [2,3,4,3,0,0,0,0,0,0,0,0],
+        backgroundColor: 'rgba(0,212,255,0.6)',
+        borderColor: '#00d4ff', borderWidth: 1, borderRadius: 4
+      }]
+    },
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
+  });
+
+  // Bay
+  new Chart(document.getElementById('chartBay'), {
+    type: 'bar',
+    data: {
+      labels: ['BAY 01','BAY 02','BAY 03','BAY 04','BAY 05'],
+      datasets: [{
+        label: 'รถที่ผ่าน',
+        data: [8,6,7,5,4],
+        backgroundColor: ['#00d4ff','#00ff9d','#ffd60a','#ff6b35','#a78bfa'],
+        borderRadius: 4
+      }]
+    },
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false, indexAxis: 'y' }
+  });
+
+  // Wait time
+  new Chart(document.getElementById('chartWait'), {
+    type: 'line',
+    data: {
+      labels: ['จ.','อ.','พ.','พฤ.','ศ.','ส.','อา.'],
+      datasets: [{
+        label: 'เวลารอเฉลี่ย (นาที)',
+        data: [35,42,38,45,50,30,42],
+        borderColor: '#ffd60a', backgroundColor: 'rgba(255,214,10,0.1)',
+        tension: 0.4, fill: true, pointBackgroundColor: '#ffd60a'
+      }]
+    },
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
+  });
+
+  // Feed type
+  new Chart(document.getElementById('chartFeedType'), {
+    type: 'doughnut',
+    data: {
+      labels: ['FEED-A001','FEED-B002','FEED-C003','FEED-D004'],
+      datasets: [{
+        data: [35,28,22,15],
+        backgroundColor: ['#00d4ff','#00ff9d','#ffd60a','#ff6b35'],
+        borderWidth: 0
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { color: '#7c8ca0', font:{size:11} } } }
+    }
+  });
+}
+
+function initMgmtCharts() {
+  // Monthly volume
+  new Chart(document.getElementById('chartMonthly'), {
+    type: 'bar',
+    data: {
+      labels: ['ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.'],
+      datasets: [
+        { label: 'ปริมาณจริง (ตัน)', data: [7200,7800,8100,7600,8500,8000,8240],
+          backgroundColor: 'rgba(0,212,255,0.6)', borderColor:'#00d4ff', borderRadius:4 },
+        { label: 'เป้าหมาย (ตัน)', data: [8000,8000,8000,8000,8500,8500,8500],
+          type: 'line', borderColor:'#ffd60a', backgroundColor:'transparent',
+          tension:0.4, pointBackgroundColor:'#ffd60a', borderDash:[5,5] }
+      ]
+    },
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
+  });
+
+  // Loading time vs target
+  new Chart(document.getElementById('chartTarget'), {
+    type: 'line',
+    data: {
+      labels: ['ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.','ม.ค.','ก.พ.'],
+      datasets: [
+        { label: 'เวลาโหลดจริง (นาที)', data: [45,43,41,44,40,39,38],
+          borderColor:'#ff6b35', backgroundColor:'rgba(255,107,53,0.1)', tension:0.4, fill:true, pointBackgroundColor:'#ff6b35' },
+        { label: 'เป้าหมาย (นาที)', data: [40,40,40,40,40,40,40],
+          borderColor:'#00ff9d', backgroundColor:'transparent',
+          tension:0, borderDash:[5,5], pointBackgroundColor:'#00ff9d' }
+      ]
+    },
+    options: { ...chartDefaults, responsive: true, maintainAspectRatio: false }
+  });
+}
+</script>
+</body>
+</html>
