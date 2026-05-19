@@ -39,6 +39,9 @@ builder.Services.AddScoped<IHardwareService, HardwareService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 
+// Scale SSE Background Service
+builder.Services.AddHostedService<ScaleSseBackgroundService>();
+
 // JWT Authentication
 var jwtConfig = builder.Configuration.GetSection("Jwt");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
