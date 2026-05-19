@@ -1,31 +1,32 @@
 # HANDOFF — Smart Load Bulk
 
-**อัปเดตล่าสุด:** 2026-05-18 (Session 9 — Dark Theme Redesign กำลังทำอยู่)  
-**สถานะ:** Phase 3 ✅ 100% | Phase 4 SignalR 70% | Phase 6 Analytics 90% | Dark UI 🔵 60%
+**อัปเดตล่าสุด:** 2026-05-19 (Session 11 — Analytics Dark Theme ✅ + Git Init ✅)  
+**สถานะ:** Phase 3 ✅ 100% | Phase 4 ✅ 100% | Phase 6 ✅ 100% | Phase 5 ⬜ 0% | Phase 7 ⬜ 0%
 
 ---
 
-## สถานะเมื่อปิด Session 9 (ล่าสุด)
+## สถานะเมื่อปิด Session 11 (ล่าสุด) ✅
 
-### 🔵 Dark Theme Redesign — กำลังทำอยู่
-อ้างอิง design: `docs/feed_loading_system.html`
+### ✅ Dark Theme Analytics Pages — เสร็จสมบูรณ์
+ตรวจพบและแก้ไขปัญหา dark theme ใน 4 Analytics pages:
 
-**เสร็จแล้ว:**
-- `index.css` — IBM Plex Sans Thai/Mono fonts, CSS variables dark industrial
-- `AppShell.tsx` — dark bg
-- `Sidebar.tsx` — gradient logo, nav sections (Operations/Analytics/Settings), left-border active
-- `TopBar.tsx` — dark + live dot + real-time clock
-- `KpiCard.tsx` — stat-card style (2px top border, mono font, neon colors)
+**สิ่งที่แก้:**
+- `index.css` — เพิ่ม purple overrides (`bg-purple-50`, `text-purple-600/700`, `border-purple-200`)
+- `index.css` — เพิ่ม border overrides (`border-amber-200`, `border-blue-200`, `border-green-200`)
+- `PerformancePage.tsx` — chart grid `#F1F5F9` → `#1e2d47`
+- `LossYieldPage.tsx` — chart grid `#F1F5F9` → `#1e2d47`
+- `BayPerformancePage.tsx` — chart grid `#F1F5F9` → `#1e2d47`
+- `TurnaroundPage.tsx` — chart grid `#F1F5F9` → `#1e2d47`
 
-**ยังไม่เสร็จ:**
-- `PageHeader.tsx`, `BayStatusCard.tsx`, `DashboardPage.tsx`, `OrdersPage.tsx`, `LoginPage.tsx`
+### ✅ Git Repository เริ่มต้นแล้ว
+- `git init` + `.gitignore` สร้างใหม่ (ครอบคลุม bin/, obj/, node_modules/, dist/, logs/)
+- Push ขึ้น GitHub: `https://github.com/makiya09/SMART_LOADOUT_FULL.git`
+- Branch: `master` track `origin/master` แล้ว
+- 2 commits: initial + cleanup bin/obj
 
-**ไฟล์ Frontend ที่แก้:**
-- `slb-frontend/src/index.css`
-- `slb-frontend/src/components/layout/AppShell.tsx`
-- `slb-frontend/src/components/layout/Sidebar.tsx`
-- `slb-frontend/src/components/layout/TopBar.tsx`
-- `slb-frontend/src/components/ui/KpiCard.tsx`
+---
+
+## สถานะเมื่อปิด Session 10
 
 ---
 
@@ -176,10 +177,10 @@ Job:   CREATED → LOADING ⇄ PAUSED → COMPLETED
 1. Nick Fury — อ่าน docs/CURRENT_STATUS.md + docs/NEXT_STEPS.md
 2. ตรวจ API รัน: netstat -ano | findstr ":5215"
    ถ้าไม่รัน: cd src/SmartLoadBulk.API && dotnet run --launch-profile http
-3. Login test: POST http://localhost:5215/api/auth/login
+3. Login test: POST http://localhost:5215/api/auth/login {"username":"admin","password":"Admin@1234"}
 4. Frontend รัน: cd src/slb-frontend && npm run dev
-5. ถัดไป: Dark Theme Redesign ต่อ — PageHeader, BayStatusCard, DashboardPage, OrdersPage, LoginPage
-   อ้างอิง: docs/feed_loading_system.html
+5. Git push: $env:PATH += ";C:\Program Files\Git\cmd"; git push
+6. ถัดไป: Phase 7 UAT — E2E test ตั้งแต่ Login → Order → Queue → Bay → Load → Release
 ```
 
 ---

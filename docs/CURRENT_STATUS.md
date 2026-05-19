@@ -1,8 +1,8 @@
 ﻿# CURRENT STATUS — Smart Load Bulk
 
-**อัปเดตล่าสุด:** 2026-05-19 (Session 10 — Phase 4 SignalR ✅ + Dark Theme ✅)  
-**Phase ปัจจุบัน:** Phase 6 — Analytics 90% ✅ | Dark UI Redesign กำลังทำอยู่ 🔵  
-**สถานะโดยรวม:** 🟢 Backend API รันจริงที่ http://localhost:5215 — Analytics 4 endpoints ✅ | Frontend Dark Theme ✅ 100%
+**อัปเดตล่าสุด:** 2026-05-19 (Session 11 — Analytics Dark Theme ✅ + Git Init ✅)  
+**Phase ปัจจุบัน:** Phase 6 ✅ 100% — ถัดไป Phase 7 UAT  
+**สถานะโดยรวม:** 🟢 Backend API รันจริงที่ http://localhost:5215 — Analytics 4 endpoints ✅ | Dark Theme ✅ 100% ทุกหน้า | Git ✅ push GitHub แล้ว
 
 ---
 
@@ -55,6 +55,12 @@ Phase 0–2 เสร็จสมบูรณ์, DB พร้อม, API รั
 - [x] แก้ vite.config.ts proxy port 5000 → 5215 (bug ทำให้ login ไม่ได้) ✅
 - [x] อัปเดต Frontend types/index.ts + 4 Analytics pages ให้ตรง API response จริง ✅
 
+**Session 11 (2026-05-19 — Analytics Dark Theme ✅ + Git Init ✅):**
+- [x] ตรวจสอบ Analytics pages พบ 3 ปัญหา: chart grids, purple colors, border overrides ✅
+- [x] `index.css` — เพิ่ม purple class overrides + border-amber/blue/green-200 overrides ✅
+- [x] PerformancePage / LossYieldPage / BayPerformancePage / TurnaroundPage — chart grid dark ✅
+- [x] `git init` + `.gitignore` + push GitHub: https://github.com/makiya09/SMART_LOADOUT_FULL.git ✅
+
 **Session 9 (2026-05-18 — Dark Theme Redesign เสร็จสมบูรณ์ ✅):**
 - [x] index.css — IBM Plex Sans Thai + Mono fonts, CSS variables dark industrial ✅
 - [x] AppShell.tsx — dark bg ✅
@@ -73,7 +79,7 @@ Phase 0–2 เสร็จสมบูรณ์, DB พร้อม, API รั
 
 ## สิ่งที่ยังต้องทำ ⬜
 
-### Dark Theme Redesign: ✅ เสร็จสมบูรณ์ทุกหน้าแล้ว (Session 9)
+### Dark Theme Redesign: ✅ เสร็จสมบูรณ์ทุกหน้าแล้ว รวม Analytics 4 หน้า (Session 11)
 
 ### Phase 4 — SignalR Realtime: ✅ เสร็จสมบูรณ์ (Session 10)
 - [x] IInventoryEventPublisher + SignalRInventoryEventPublisher ✅
@@ -102,7 +108,7 @@ Phase 2 — Bootstrap & Project Setup   ✅ 100%
 Phase 3 — Core Modules (MVP)          ✅ 100% (LoadingService ✅, QrService ✅, ChecklistService ✅)
 Phase 4 — SignalR / Realtime          ✅ 100% (LoadingHub ✅ QueueHub ✅ InventoryHub ✅ Reconnect ✅)
 Phase 5 — Hardware Integration        ⬜ 0%
-Phase 6 — Analytics Coding            🟢 90% (SP ✅ / Frontend ✅ / Dark UI 🔵 60%)
+Phase 6 — Analytics Coding            ✅ 100% (SP ✅ / Frontend ✅ / Dark UI ✅ 100%)
 Phase 7 — UAT / Go-Live               ⬜ 0%
 \\\
 

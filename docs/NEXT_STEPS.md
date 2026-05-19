@@ -1,7 +1,7 @@
 # NEXT STEPS — Smart Load Bulk
 
-**อัปเดตล่าสุด:** 2026-05-18 (หลัง Session 9)  
-**Phase ปัจจุบัน:** Phase 3 ✅ 100% | Phase 4 SignalR 70% | Phase 6 Analytics 90% | Dark UI 🔵 60%
+**อัปเดตล่าสุด:** 2026-05-19 (หลัง Session 11)  
+**Phase ปัจจุบัน:** Phase 0–4 ✅ 100% | Phase 6 ✅ 100% | Phase 5 ⬜ 0% | Phase 7 ⬜ 0%
 
 ---
 
@@ -24,36 +24,31 @@
 
 ---
 
-## Priority 1 — Dark Theme Redesign (Session 9 กำลังทำ) 🔵
+## ✅ Dark Theme Redesign — เสร็จสมบูรณ์ 100% (Session 9–11)
 
-**อ้างอิง:** `docs/feed_loading_system.html`
-
-**เสร็จแล้ว:**
-- `index.css` — IBM Plex Sans Thai/Mono, CSS variables dark industrial ✅
-- `AppShell.tsx` — dark bg ✅
-- `Sidebar.tsx` — gradient logo, nav sections, left-border active ✅
-- `TopBar.tsx` — dark + live dot + real-time clock ✅
-- `KpiCard.tsx` — stat-card style (2px top border, mono font, neon colors) ✅
-
-**ต้องทำต่อ (เรียงลำดับ):**
-1. `PageHeader.tsx` — dark industrial style
-2. `BayStatusCard.tsx` — dark bay card
-3. `DashboardPage.tsx` — ปรับ layout + dark components ครบ
-4. `OrdersPage.tsx` — ปรับ table dark
-5. `LoginPage.tsx` — ปรับ login form dark industrial
+ทุกหน้าเป็น dark theme แล้ว รวมถึง Analytics 4 หน้า (chart grids + purple + borders)
 
 ---
 
-## Priority 2 — Phase 4 SignalR (30% ที่เหลือ)
+## ✅ Phase 4 SignalR — เสร็จสมบูรณ์ 100% (Session 10)
 
-ส่วนที่ยังไม่ได้ทำ:
-- `useQueueHub` ใน `OrdersPage` / `DashboardPage` — auto-refresh queue board
-- InventoryHub push เมื่อ stock เปลี่ยน
-- ทดสอบ SignalR reconnect เมื่อ connection หลุด
+LoadingHub / QueueHub / InventoryHub + reconnect backoff ครบแล้ว
 
 ---
 
-## Priority 3 — Phase 5 Hardware Integration
+## Priority 1 — Phase 7 UAT / Go-Live (ถัดไป!)
+
+E2E test flow ครบทั้งระบบ:
+1. Login → Dashboard
+2. สร้าง Order → เพิ่มเข้า Queue
+3. Call Truck → Dock → เริ่ม Load → Complete
+4. QR Generate → Scan → Validate
+5. Checklist: RecordWeight → TickItems ครบ → Release
+6. Analytics: ตรวจสอบ Performance / Loss-Yield / Bay / Turnaround มีข้อมูลจริง
+
+---
+
+## Priority 2 — Phase 5 Hardware Integration
 
 - `HardwareService` ยังเป็น stub ทั้งหมด
 - ต้องรู้ Hardware protocol จริงก่อน (PLC? Modbus? Serial?)
@@ -90,8 +85,8 @@ Phase 0 — Project Init        ✅ 100%
 Phase 1 — DB / Architecture   ✅ 100%
 Phase 2 — Bootstrap           ✅ 100%
 Phase 3 — Core Modules        ✅ 100%  (Loading + QR + Checklist ✅)
-Phase 4 — SignalR              🔵  70%  (Push events ✅ / QueueHub frontend ⬜)
+Phase 4 — SignalR              ✅ 100%  (LoadingHub ✅ QueueHub ✅ InventoryHub ✅)
 Phase 5 — Hardware              ⬜   0%
-Phase 6 — Analytics Coding     🟢  90%  (SP ✅ / Frontend ✅ / Dark UI 🔵 60%)
+Phase 6 — Analytics Coding     ✅ 100%  (SP ✅ / Frontend ✅ / Dark UI ✅)
 Phase 7 — UAT / Go-Live        ⬜   0%
 ```

@@ -4,6 +4,44 @@
 
 ---
 
+## 2026-05-19
+
+### [TASK-015] Black Widow + Iron Man — Analytics Dark Theme Audit & Fix
+**Agent:** Black Widow (ตรวจ) + Iron Man (แก้)  
+**เวลา:** 2026-05-19 (Session 11)  
+**สถานะ:** ✅ เสร็จ
+
+**งานที่ทำ:**
+- ตรวจสอบ 4 Analytics pages: PerformancePage, LossYieldPage, BayPerformancePage, TurnaroundPage
+- พบ 3 ปัญหา: chart grids ใช้สี `#F1F5F9` (ขาว), purple ไม่มี override, border-*-200 ไม่มี override
+- แก้ `index.css` — เพิ่ม purple class set + border-amber/blue/green-200
+- แก้ chart `stroke="#F1F5F9"` → `stroke="#1e2d47"` ใน 4 ไฟล์
+
+**ไฟล์ที่แก้:**
+- `slb-frontend/src/index.css`
+- `slb-frontend/src/pages/PerformancePage.tsx`
+- `slb-frontend/src/pages/LossYieldPage.tsx`
+- `slb-frontend/src/pages/BayPerformancePage.tsx`
+- `slb-frontend/src/pages/TurnaroundPage.tsx`
+
+---
+
+### [TASK-016] Nick Fury — Git Init & GitHub Push
+**Agent:** Nick Fury  
+**เวลา:** 2026-05-19 (Session 11)  
+**สถานะ:** ✅ เสร็จ
+
+**งานที่ทำ:**
+- สร้าง `.gitignore` (bin/, obj/, node_modules/, dist/, logs/, *.pfx)
+- `git init` + initial commit (319 files source code)
+- cleanup commit — ลบ bin/obj/logs ออกจาก tracking
+- `git remote add origin https://github.com/makiya09/SMART_LOADOUT_FULL.git`
+- `git push -u origin master` — push สำเร็จ
+
+**หมายเหตุ:** Git ติดตั้งอยู่แล้วในเครื่อง แต่ไม่อยู่ใน PATH — ต้องเพิ่ม `$env:PATH += ";C:\Program Files\Git\cmd"` ทุกครั้งที่เปิด terminal ใหม่
+
+---
+
 ## 2026-05-13
 
 ### [TASK-001] Nick Fury — Project Initialization
